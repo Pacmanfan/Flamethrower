@@ -110,43 +110,40 @@ void DoModeInput()
 
 void WelcomeMessage()
 {
-  Serial.println("***************************************");
+  
+  Serial.println("************************************");
   Serial.println("Wrist-Mounted Flame-Thrower Firmware");
-  Serial.println("Version 1.0.0.3 : 7.20.2018");
-  Serial.println("Steve Hernandez");
-  Serial.println("aka PacManFan");
+  Serial.println("Version 1.0.0.5 : 7.20.2018");
+  Serial.println("PacManFan");
   Serial.println("pacmanfan321@gmail.com");
-  Serial.println("Copyright 2018\r\n");
   Serial.println("Warrenty : Use at your own damn risk!");
+  
 }
 
 void PrintArgs()
 {
   Serial.println("***************************************");  
   Serial.println("Commands: ");
-  Serial.println("B <val> - Sets Burst Duration (mS)");
-  Serial.println("I <val> - Sets Ignition Duration (mS)");
-  Serial.println("D <val> - Sets Delay between sequential bursts "); 
-  Serial.println("T <val> - Sets Solenoid Minimum On Value (0 - 255)"); 
-  Serial.println("Y <val> - Sets Solenoid Initial Duration (25 - 100) mS"); 
-  Serial.println("U <val> - Sets Solenoid gas acceleration [1024] default"); 
-  Serial.println("O <val> - Sets Max LED brightness (0 - 255) [64] default"); 
+  Serial.println("B <val> -Burst Duration (mS)");
+  Serial.println("I <val> -Ignitor Duration (mS)");
+  Serial.println("D <val> -Delay between bursts"); 
+  Serial.println("T <val> -Solenoid Minimum On Value (0-255)"); 
+  //Serial.println("Y <val> -Solenoid Initial Duration (25-100) mS"); 
+//  Serial.println("U <val> -Solenoid gas acceleration [1024]"); 
+//  Serial.println("O <val> -Max LED brightness (0 - 255) "); 
   
-  Serial.println("C - Do calibration for solenoid control");
+//  Serial.println("C - Do calibration for solenoid control");
   Serial.println("N - Next Mode");
   Serial.println("P - Print Live Status");
-  Serial.println("E - Print EEPROM Values");
-  Serial.println("S - Save Current values");  
+//  Serial.println("E - Print EEPROM Values");
+//  Serial.println("S - Save Current values");  
   Serial.println("Z - Trigger ignition sequence");  
   Serial.println("X - Trigger burst sequence");  
-  Serial.println("A - Stop All - (Burst and Ignition)");  
-  
+//  Serial.println("A - Stop All");    
 }
-
 
 void Print_EEPROM_Vals()
 {
-  Serial.println("***************************************");  
   Serial.println("*****EEPROM Values:");   
   Serial.print("Burst Duration (mS) : ");
   Serial.println(pVars.burst_duration);
@@ -161,11 +158,11 @@ void Print_EEPROM_Vals()
   Serial.print("Solenoid PWM Minimum: ");
   Serial.println(pVars.solenoid_PWM_min);
   Serial.print("Solenoid Initial Duration: ");
-  Serial.println(pVars.solenoid_Initial_Duration);
+  Serial.println(SOLENOID_INITIAL_DURATION);
   Serial.print("Solenoid Gas acceleration: ");
-  Serial.println(pVars.solenoid_acceleration);
+  Serial.println(SOLENOID_ACCEL);
   Serial.print("Max LED brightness: ");
-  Serial.println(pVars.maxLED);  
+  Serial.println(MAX_LED);  
 }
 
 void PrintVals()
@@ -207,21 +204,21 @@ void ParseMessage()
       sscanf((const char *)&message[2], "%d", &pVars.solenoid_PWM_min);
       Print_EEPROM_Vals();
       break;
-    case 'Y':
-      sscanf((const char *)&message[2], "%d", &pVars.solenoid_Initial_Duration);
-      Print_EEPROM_Vals();
-      break;
-    case 'U':
-      sscanf((const char *)&message[2], "%d", &pVars.solenoid_acceleration);
-      Print_EEPROM_Vals();
-      break;
-    case 'O':
-      sscanf((const char *)&message[2], "%d", &pVars.maxLED);
-      Print_EEPROM_Vals();
-      break;
+//    case 'Y':
+//      sscanf((const char *)&message[2], "%d", &pVars.solenoid_Initial_Duration);
+//      Print_EEPROM_Vals();
+//      break;
+//    case 'U':
+//      sscanf((const char *)&message[2], "%d", &pVars.solenoid_acceleration);
+//      Print_EEPROM_Vals();
+//      break;
+//    case 'O':
+//      sscanf((const char *)&message[2], "%d", &pVars.maxLED);
+//      Print_EEPROM_Vals();
+//      break;
     case 'C':
-      CalibratePotInput(); // do calibration
-      PrintVals();
+    //  CalibratePotInput(); // do calibration
+     // PrintVals();
       break;
     case 'N': // Next Mode
       m_burst.NextMode();
@@ -271,7 +268,7 @@ void DoSerial()
     }
   }
 }
-
+/*
 // small calibration routine
 void CalibratePotInput()
 {
@@ -297,7 +294,7 @@ void CalibratePotInput()
   Serial.println(pVars.solenoid_pot_max);
   Serial.println("Remember to save values to EEPROM with the 'S' command.");   
 }
-
+*/
 void DoPotInput()
 {
   //read the 10K potentiometer   

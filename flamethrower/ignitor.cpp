@@ -15,7 +15,7 @@ void Ignitor::Start()
 }
 void Ignitor::End()
 {
-  Serial.println("ignition end");
+  //Serial.println("ignition end");
   digitalWrite(IgnitionPin,LOW); // turn off the ignition if on  
   m_state = eIgnitorIdle;
 }
@@ -28,7 +28,7 @@ void Ignitor::Update()
       //do nothing
     break;
     case eIgnitorStart:
-    Serial.println("ignition start");
+    //Serial.println("ignition start");
       digitalWrite(IgnitionPin, HIGH); // set it to high    
       m_state = eIgnitorWait;  // go to the wait state
     break;

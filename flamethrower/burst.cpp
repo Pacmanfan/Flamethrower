@@ -35,7 +35,7 @@ This function is called at application start-up
 void Burst::Init()
 {
   m_state = eIdle;  
-  BurstTime = 0;  
+  //BurstTime = 0;  
   pinMode(SolenoidPin, OUTPUT);  // set up the pin for the gas solenoid valve
   digitalWrite(SolenoidPin, LOW); // set it to off
   
@@ -52,7 +52,6 @@ void Burst::Init()
 // This is the function used to start the burst sequence
 void Burst::Start()
 {
-  Serial.println("Burst::Start");
   m_state = eStart; //set the state machine
   BurstTime = millis(); // mark when we started
 }
@@ -62,18 +61,9 @@ This is called to end a burst
 */
 void Burst::End() 
 {
-  Serial.println("Burst::End");
   analogWrite(SolenoidPin,0); // turn off the solenoid valve
   m_state = eIdle; // move the state machine back to idle
 }
-
-bool Burst::IsActive()
-{
-  if(m_state == eIdle)
-    return false;
-  return true;  
-}
-
 /*
 This is the main state machine that uses time to go to the next state
 We initially spike the valve at full value to make sure it's open, then reduce it to the starting value quickly
@@ -81,6 +71,7 @@ We then use an acceleration value to the solenoid PWM,
 What this means is that we'll start to emit gas slow, and accelerate the output rate up to the max
 value over a short period of time
 this will allow the gas to ignite prior to achieving maximum flow rate
+The SolenoidPWMValue controlled by the potentiometer is the Max flow rate of the gas through the solenoid
 */
 void Burst::Update()
 {
@@ -93,15 +84,13 @@ void Burst::Update()
     case eIdle: // do nothing      
     break; 
     case eStart: 
-        // turn on solenoid
-        Serial.println("Solenoid On");
-        //analogWrite(SolenoidPin,pVars.solenoid_PWM_min); // turn on the solenoid valve to the minimum triggering value        
         analogWrite(SolenoidPin,255); // turn on the solenoid valve to the max value to initially open it
         m_state = eInitialOpen; // go to the initial opening state
     break;
     case eInitialOpen:
+        Serial.println("Burst: eInitialOpen");
         //wait until the solenoid is open
-        if(timenow > (BurstTime + pVars.solenoid_Initial_Duration))
+        if(timenow > (BurstTime + SOLENOID_INITIAL_DURATION))
         {
             analogWrite(SolenoidPin,pVars.solenoid_PWM_min); // set the minimum value of gas
             m_state = eWaitForDone; // now move to the state to ramp up the gas 
@@ -111,34 +100,37 @@ void Burst::Update()
         //handle the acceleration of the solenoid flow rate
         //based on the start time (BurstTime), calculate the absolute PWM rate
         tmp = (timenow - BurstTime);
-        if(tmp > 10000)// if it's longer than 10 seconds, clip it...
-          tmp = 10000;
+        if(tmp > 3000)// if it's longer than 3 seconds, clip it...
+          tmp = 3000;
         tmp /= 1000; // convert to mS
-        tmp *=  pVars.solenoid_acceleration; //calculate the rate based on absolute time since triggering and acceleration per second
+        tmp *=  SOLENOID_ACCEL; //calculate the rate based on absolute time since triggering and acceleration per second
         ActualSolenoidPWMValue =  pVars.solenoid_PWM_min + (int)tmp; // start at the min value
         // max sure it doesn't exceed the actual rate determined from the analog POT that we've read and scaled
         if( ActualSolenoidPWMValue > SolenoidPWMValue)
             ActualSolenoidPWMValue = SolenoidPWMValue; 
-
+  //      if( ActualSolenoidPWMValue > 255)
+    //        ActualSolenoidPWMValue = 255; 
+        //Serial.println(ActualSolenoidPWMValue);
         analogWrite(SolenoidPin,ActualSolenoidPWMValue); // Set the solenoid PWM valve        
-                
-        if(Mode() != eContinousFlame) // if we're not in continous flame mode
+
+        // check to see if we're past the time
+        if(timenow > (BurstTime + pVars.burst_duration))
         {
-          // check to see if we need to turn it off    
-          if(timenow > (BurstTime + pVars.burst_duration))
+          switch(Mode())
           {
-            analogWrite(SolenoidPin,0); // turn off the solenoid valve
-            if(Mode() == eSingleBurst)
-            {
-                //we're done here, go back to idle  
-                m_state = eIdle;
-            }else if (Mode() == eContinousBurst)
-            {
+            case eContinousFlame: // do nothing, user must end manually by letting go of the button
+            break;
+            case eContinousBurst:
                 //go to the rest state between bursts  
+                analogWrite(SolenoidPin,0); // Set the solenoid PWM valve                       
                 m_state = eRest; // move the the next state
                 //restart the timer for the rest period
-                BurstTime = millis();   
-            }                
+                BurstTime = millis();               
+            break;
+            case eSingleBurst:
+                analogWrite(SolenoidPin,0); // Set the solenoid PWM valve        
+                m_state = eIdle;//we're done here, go back to idle  
+            break;
           }
         }
     break;
@@ -213,7 +205,7 @@ void Burst::UpdateModeLED()
     odd = 1; 
     
   int pin = ModeLEDPinR; // give it a default
-  int valmax=64; //default
+  int valmax=MAX_LED; //default
   //figure out which pin and max we're working with
   
   switch (m_mode)

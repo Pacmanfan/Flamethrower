@@ -42,14 +42,12 @@ public:
   eBurstState m_state;
   void Init();
   void Start();
-  bool IsActive();
   void Update();
   void End(); // for manual ending of the burst
   void NextMode();
   void SetMode(eFlameMode mode);
   void PrintMode();
   eFlameMode Mode(){return m_mode;}
-  eBurstState State(){return m_state;}  
 private:
   void UpdateModeLED(); // make them pulse based on the time  
 };

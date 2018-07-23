@@ -63,7 +63,7 @@ The solenoid *kinda can be PWM controlled with values from 0->255 from the Ardui
 It requires an initial high PWM value (near full val of 220 - 255) to initially open the valve.
 After the valve is opened (B), the PWM can be scaled back to a lower value (C) and still be held partially open 
 It can then be ramped up to the desired value from ( C->D ) which is the Max value used for this burst.
-The time period from C->D is based on the acceleration of the gas to allow for ignition.
+The time period from C->D is ramping up the butane flow based on the acceleration of the gas to allow a slow start for ignition.
 The time period from A->C (eInitialOpen) can probably be fairly short (20mS - 25mS according to specs of the solenoid response time)
 The solenoid PWM value is then held at level D/E until the burst period is over and then dropped down to 0 (F)
 
