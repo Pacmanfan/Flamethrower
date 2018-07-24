@@ -128,9 +128,6 @@ void PrintArgs()
   Serial.println("I <val> -Ignitor Duration (mS)");
   Serial.println("D <val> -Delay between bursts"); 
   Serial.println("T <val> -Solenoid Minimum On Value (0-255)"); 
-  //Serial.println("Y <val> -Solenoid Initial Duration (25-100) mS"); 
-//  Serial.println("U <val> -Solenoid gas acceleration [1024]"); 
-//  Serial.println("O <val> -Max LED brightness (0 - 255) "); 
   
 //  Serial.println("C - Do calibration for solenoid control");
   Serial.println("N - Next Mode");
@@ -155,8 +152,6 @@ void Print_EEPROM_Vals()
   Serial.println(pVars.solenoid_pot_min);
   Serial.print("Maximum POT Solenoid value: ");
   Serial.println(pVars.solenoid_pot_max);
-  Serial.print("Solenoid PWM Minimum: ");
-  Serial.println(pVars.solenoid_PWM_min);
   Serial.print("Solenoid Initial Duration: ");
   Serial.println(SOLENOID_INITIAL_DURATION);
   Serial.print("Solenoid Gas acceleration: ");
@@ -198,10 +193,6 @@ void ParseMessage()
       break;
     case 'D':
       sscanf((const char *)&message[2], "%d", &pVars.burst_delay);
-      Print_EEPROM_Vals();
-      break;
-    case 'T':
-      sscanf((const char *)&message[2], "%d", &pVars.solenoid_PWM_min);
       Print_EEPROM_Vals();
       break;
 //    case 'Y':
@@ -300,7 +291,8 @@ void DoPotInput()
   //read the 10K potentiometer   
   // translate and scale the value
   //set the PWM value for the solenoid
-  SolenoidPWMValue = map(analogRead(Solenoid_Input_Pin),0,1023,pVars.solenoid_PWM_min,255);
+  //SolenoidPWMValue = map(analogRead(Solenoid_Input_Pin),0,1023,pVars.solenoid_PWM_min,255);
+  SolenoidPWMValue = map(analogRead(Solenoid_Input_Pin),0,1023,-SOLENOID_MIN_DURATION,SOLENOID_MIN_DURATION);
 }
 
 void loop()

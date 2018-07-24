@@ -2,7 +2,7 @@
 #define COMMON_VARS
 #include "settings.h"
 
-extern int SolenoidPWMValue ;// full on for now
+extern int SolenoidPWMValue ;// a 0 - 255 value reading of the pot 
 
 #define EEPROM_ADDRESS 0 // the address where we're storing and reading values
 

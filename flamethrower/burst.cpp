@@ -28,7 +28,8 @@ PWM
 0
 TIME ---------->
 */
-
+int valtoggle = LOW;
+unsigned long togltime = 0;
 /*
 This function is called at application start-up
 */
@@ -52,8 +53,9 @@ void Burst::Init()
 // This is the function used to start the burst sequence
 void Burst::Start()
 {
-  m_state = eStart; //set the state machine
+  m_state = eWaitForDone; //set the state machine
   BurstTime = millis(); // mark when we started
+  togltime = millis();
 }
 
 /*
@@ -76,43 +78,31 @@ The SolenoidPWMValue controlled by the potentiometer is the Max flow rate of the
 void Burst::Update()
 {
   unsigned long timenow = millis(); // get the time now
-  int ActualSolenoidPWMValue = pVars.solenoid_PWM_min; // set it at the start value
-  float tmp = 0;
   UpdateModeLED(); // update the pulsing led  
+ 
   switch(m_state)
   {
     case eIdle: // do nothing      
     break; 
-    case eStart: 
-        analogWrite(SolenoidPin,255); // turn on the solenoid valve to the max value to initially open it
-        m_state = eInitialOpen; // go to the initial opening state
-    break;
-    case eInitialOpen:
-        Serial.println("Burst: eInitialOpen");
-        //wait until the solenoid is open
-        if(timenow > (BurstTime + SOLENOID_INITIAL_DURATION))
-        {
-            analogWrite(SolenoidPin,pVars.solenoid_PWM_min); // set the minimum value of gas
-            m_state = eWaitForDone; // now move to the state to ramp up the gas 
-        }
-    break;
     case eWaitForDone:
-        //handle the acceleration of the solenoid flow rate
-        //based on the start time (BurstTime), calculate the absolute PWM rate
-        tmp = (timenow - BurstTime);
-        if(tmp > 3000)// if it's longer than 3 seconds, clip it...
-          tmp = 3000;
-        tmp /= 1000; // convert to mS
-        tmp *=  SOLENOID_ACCEL; //calculate the rate based on absolute time since triggering and acceleration per second
-        ActualSolenoidPWMValue =  pVars.solenoid_PWM_min + (int)tmp; // start at the min value
-        // max sure it doesn't exceed the actual rate determined from the analog POT that we've read and scaled
-        if( ActualSolenoidPWMValue > SolenoidPWMValue)
-            ActualSolenoidPWMValue = SolenoidPWMValue; 
-  //      if( ActualSolenoidPWMValue > 255)
-    //        ActualSolenoidPWMValue = 255; 
-        //Serial.println(ActualSolenoidPWMValue);
-        analogWrite(SolenoidPin,ActualSolenoidPWMValue); // Set the solenoid PWM valve        
-
+      
+        if(timenow > togltime)
+        {
+          // next mod is to add some basic PWM in here to control the on/off ratio instead of the speed
+          if(valtoggle == LOW)
+          {
+            digitalWrite(SolenoidPin,valtoggle); // Set the solenoid PWM valve                                
+            valtoggle = HIGH;
+            togltime = timenow + 11 + SolenoidPWMValue;
+          }
+          else // high
+          {
+            digitalWrite(SolenoidPin,valtoggle); // Set the solenoid PWM valve                                
+            valtoggle = LOW;
+            togltime = timenow + 11 + (-1 * SolenoidPWMValue);
+          }
+          
+        }
         // check to see if we're past the time
         if(timenow > (BurstTime + pVars.burst_duration))
         {

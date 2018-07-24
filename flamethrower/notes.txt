@@ -82,5 +82,15 @@ PWM
 TIME ---------->
 
 
+Another potential control method of the gas is simply a slower PWM of the solenoid since this is more reliable than 
+controlling the position of the valve By choosing the on/off times of a slower-rate PWM. We've got to determine the maximum practical speed
+that we can reliably open and close the solenoid valve. 
+
+We're trying to also achieve fast (100 ms +) flame bursts
+
+So:
+The specs of the solenoid say 15-25ms , 
+To test the max speed of this, I can disable the ignitor, and use only the solenoid valve
+I can make the speed of the 50/50 on /off time be controlled by the pot.
 
 
